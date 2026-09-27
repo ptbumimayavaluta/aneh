@@ -23,6 +23,8 @@ class CurrencyController extends Controller
             'sell_rate' => 'required|numeric|min:0',
         ]);
 
+        // Jika symbol tidak diisi / null, beri string kosong '' atau '-'
+        $validated['symbol'] = $validated['symbol'] ?? ''; 
         $validated['is_active'] = $request->has('is_active');
 
         Currency::create($validated);
@@ -42,18 +44,12 @@ class CurrencyController extends Controller
             'sell_rate' => 'required|numeric|min:0',
         ]);
 
+        // Jika symbol tidak diisi / null, beri string kosong '' atau '-'
+        $validated['symbol'] = $validated['symbol'] ?? ''; 
         $validated['is_active'] = $request->has('is_active');
 
         $currency->update($validated);
 
         return redirect()->route('currency.index')->with('success', 'Data mata uang berhasil diperbarui!');
-    }
-
-    public function destroy($id)
-    {
-        $currency = Currency::findOrFail($id);
-        $currency->delete();
-
-        return redirect()->route('currency.index')->with('success', 'Mata uang berhasil dihapus!');
     }
 }

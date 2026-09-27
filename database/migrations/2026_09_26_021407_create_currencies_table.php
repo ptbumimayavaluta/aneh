@@ -10,11 +10,11 @@ return new class extends Migration
     {
         Schema::create('currencies', function (Blueprint $table) {
             $table->id();
-            $table->string('code', 5)->unique(); // USD, AUD, EUR, dll.
-            $table->string('name');              // US Dollar, Euro, dll.
-            $table->string('symbol', 10);        // $, €, ¥, dll.
-            $table->decimal('buy_rate', 15, 2);  // Kurs Beli
-            $table->decimal('sell_rate', 15, 2); // Kurs Jual
+            $table->string('code', 60)->unique(); 
+            $table->string('name');
+            $table->string('symbol', 10)->nullable();                   
+            $table->decimal('buy_rate', 15, 2);  
+            $table->decimal('sell_rate', 15, 2); 
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
