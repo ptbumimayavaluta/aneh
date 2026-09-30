@@ -11,7 +11,6 @@
 
     <div class="w-full max-w-md p-6 bg-white rounded-xl shadow-xl">
         <div class="text-center mb-6">
-            <span class="bg-emerald-500 text-white px-3 py-1 rounded-lg text-xs font-black tracking-wider">POS</span>
             <h1 class="text-2xl font-bold text-gray-800 mt-2">Aneh BMEX</h1>
             <p class="text-xs text-gray-500">Silakan masuk untuk melanjutkan</p>
         </div>
