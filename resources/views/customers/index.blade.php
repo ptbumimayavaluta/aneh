@@ -4,7 +4,7 @@
 @section('page_heading', 'Data Nasabah')
 
 @section('content')
-<div class="space-y-8">
+<div class="space-y-6">
 
     <!-- Flash Alert Success -->
     @if(session('success'))
@@ -13,11 +13,40 @@
             <button onclick="this.parentElement.remove()" class="text-emerald-500 font-bold">&times;</button>
         </div>
     @endif
+
+    <!-- Form Filter Kalender / Tanggal -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 flex flex-wrap items-center justify-between gap-4">
+        <form action="{{ route('customers.index') }}" method="GET" class="flex items-center gap-3">
+            <label for="date" class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Pilih Tanggal:
+            </label>
+            <input type="date" id="date" name="date" value="{{ $date }}" 
+                   onchange="this.form.submit()" 
+                   class="border border-gray-300 rounded-lg px-3 py-1.5 text-xs text-slate-800 font-medium focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none cursor-pointer">
+            
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition shadow-sm">
+                Cari
+            </button>
+
+            @if($date !== date('Y-m-d'))
+                <a href="{{ route('customers.index') }}" class="text-xs text-rose-600 hover:text-rose-800 font-semibold underline ml-2">
+                    Reset Hari Ini
+                </a>
+            @endif
+        </form>
+
+        <div class="text-xs font-semibold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+            Periode: <span class="text-emerald-700 font-bold">{{ date('d/m/Y', strtotime($date)) }}</span>
+        </div>
+    </div>
+
+    <!-- Tabel Data Nasabah Aktif -->
     <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div class="flex justify-between items-center mb-4">
             <div>
                 <h2 class="text-base font-bold text-slate-800">Data Nasabah Aktif</h2>
-                <p class="text-xs text-gray-500">Seluruh riwayat transaksi nasabah yang terdaftar di sistem.</p>
+                <p class="text-xs text-gray-500">Riwayat transaksi nasabah pada tanggal {{ date('d/m/Y', strtotime($date)) }}.</p>
             </div>
         </div>
 
@@ -82,7 +111,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="py-6 text-center text-gray-400">Belum ada data nasabah aktif.</td>
+                            <td colspan="9" class="py-6 text-center text-gray-400">Belum ada data nasabah aktif pada tanggal {{ date('d/m/Y', strtotime($date)) }}.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -90,13 +119,14 @@
         </div>
     </div>
 
+    <!-- Tabel Data Nasabah Menggantung -->
     <div class="bg-rose-50/50 rounded-xl shadow-sm border border-rose-200 p-6">
         <div class="mb-4">
             <h2 class="text-base font-bold text-rose-900 flex items-center gap-2">
                 <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                 Riwayat Hapus (Data Menggantung)
             </h2>
-            <p class="text-xs text-rose-600">Data nasabah yang dihapus secara temporer beserta informasi eksekutornya.</p>
+            <p class="text-xs text-rose-600">Data nasabah yang dihapus secara temporer pada tanggal {{ date('d/m/Y', strtotime($date)) }}.</p>
         </div>
 
         <div class="overflow-x-auto">
@@ -133,7 +163,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="py-4 text-center text-rose-400">Tidak ada riwayat data menggantung saat ini.</td>
+                            <td colspan="7" class="py-4 text-center text-rose-400">Tidak ada riwayat data menggantung pada tanggal {{ date('d/m/Y', strtotime($date)) }}.</td>
                         </tr>
                     @endforelse
                 </tbody>

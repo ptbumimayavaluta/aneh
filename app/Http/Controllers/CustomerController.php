@@ -9,21 +9,26 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
-    // Halaman Utam Data Nasabah (Aktif & Menggantung)
-    public function index()
+    // Halaman Utama Data Nasabah (Aktif & Menggantung)
+    public function index(Request $request)
     {
-        // Data Nasabah Aktif
-        $activeNasabah = Transaction::with(['currency', 'user', 'updatedBy'])
+        // Default tanggal hari ini jika filter tidak diisi
+        $date = $request->input('date', date('Y-m-d'));
+
+        // Data Nasabah Aktif berdasarkan tanggal transaksi
+        $activeNasabah = Transaction::whereDate('created_at', $date)
+                            ->with(['currency', 'user', 'updatedBy'])
                             ->latest()
                             ->get();
 
-        // Data Nasabah Menggantung (Soft Deleted)
+        // Data Nasabah Menggantung (Soft Deleted) berdasarkan tanggal transaksi
         $trashedNasabah = Transaction::onlyTrashed()
+                            ->whereDate('created_at', $date)
                             ->with(['currency', 'user', 'deletedBy'])
                             ->latest('deleted_at')
                             ->get();
 
-        return view('customers.index', compact('activeNasabah', 'trashedNasabah'));
+        return view('customers.index', compact('activeNasabah', 'trashedNasabah', 'date'));
     }
 
     // Form Edit Data Nasabah & Transaksi
@@ -63,7 +68,6 @@ class CustomerController extends Controller
     public function destroy($id)
     {
         $transaction = Transaction::findOrFail($id);
-        
 
         $transaction->deleted_by = Auth::id();
         $transaction->save();
