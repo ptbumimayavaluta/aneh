@@ -77,8 +77,8 @@ class MutationController extends Controller
             $code = $curr->code;
             $stockData = $startStocks[$code] ?? ['qty' => 0, 'rate' => 0];
             
-            $qtyAwal   = $stockData['qty'];
-            $rateModal = $stockData['rate'];
+            $qtyAwal      = $stockData['qty'];
+            $rateModal    = $stockData['rate'];
             $valStartItem = $qtyAwal * $rateModal;
 
             $trxCurr = $transactions->where('currency_id', $curr->id)->sortBy('created_at');
@@ -106,23 +106,41 @@ class MutationController extends Controller
                     $runningQty   -= $trx->amount;
                     $jualQtyTotal += $trx->amount;
                     $jualIdrTotal += $trx->total_idr;
+
+                    if ($runningQty <= 0.0001) {
+                        $runningQty  = 0;
+                        $runningRate = 0;
+                    }
                 }
             }
 
-            $qtyAkhir     = $runningQty;
-            $avgRateAkhir = $runningRate;
-            $valEndItem   = $qtyAkhir * $avgRateAkhir;
-            $profit       = ($valEndItem + $jualIdrTotal) - ($valStartItem + $beliIdrTotal);
+            if ($runningQty <= 0.0001) {
+                $qtyAkhir     = 0;
+                $avgRateAkhir = 0;
+                $valEndItem   = 0;
+            } else {
+                $qtyAkhir     = $runningQty;
+                $avgRateAkhir = $runningRate;
+                $valEndItem   = $qtyAkhir * $avgRateAkhir;
+            }
 
-            $report[] = [
-                'currency'     => $code,
-                'awal'         => ['qty' => $qtyAwal, 'rate' => $rateModal, 'total' => $valStartItem],
-                'beli'         => ['qty' => $beliQtyTotal, 'total' => $beliIdrTotal],
-                'jual'         => ['qty' => $jualQtyTotal, 'total' => $jualIdrTotal],
-                'akhir'        => ['qty' => $qtyAkhir, 'avgRate' => $avgRateAkhir, 'valuation' => $valEndItem],
-                'profit_gross' => $profit
-            ];
+            $profit = ($valEndItem + $jualIdrTotal) - ($valStartItem + $beliIdrTotal);
+
+            // FILTER: Hanya tampilkan mata uang yang memiliki aktivitas / stok
+            $hasActivity = ($qtyAwal > 0 || $beliQtyTotal > 0 || $jualQtyTotal > 0 || $qtyAkhir > 0);
+
+            if ($hasActivity) {
+                $report[] = [
+                    'currency'     => $code,
+                    'awal'         => ['qty' => $qtyAwal, 'rate' => $rateModal, 'total' => $valStartItem],
+                    'beli'         => ['qty' => $beliQtyTotal, 'total' => $beliIdrTotal],
+                    'jual'         => ['qty' => $jualQtyTotal, 'total' => $jualIdrTotal],
+                    'akhir'        => ['qty' => $qtyAkhir, 'avgRate' => $avgRateAkhir, 'valuation' => $valEndItem],
+                    'profit_gross' => $profit
+                ];
+            }
         }
+
         return $report;
     }
 
