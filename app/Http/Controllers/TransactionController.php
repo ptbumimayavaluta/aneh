@@ -9,16 +9,15 @@ use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
-    // Form Input Transaksi Baru
+
     public function create()
     {
-        // Ambil data mata uang yang aktif saja
+
         $currencies = Currency::where('is_active', true)->get();
 
         return view('transactions.create', compact('currencies'));
     }
 
-    // Simpan Transaksi ke Database (Mendukung Multi-Baris Mata Uang)
     public function store(Request $request)
     {
 

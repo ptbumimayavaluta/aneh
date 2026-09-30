@@ -5,10 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'BMEX - Bali Money Exchange')</title>
 
-    <!-- Favicon Logo (Muncul di Tab Browser) -->
     <link rel="icon" type="image/png" href="{{ asset('img/bmex.png') }}">
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-100 font-sans antialiased text-gray-800">
 

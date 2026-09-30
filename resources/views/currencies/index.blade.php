@@ -36,7 +36,6 @@
         </button>
     </div>
 
-    <!-- Tabel Data -->
     <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse">
             <thead>
@@ -97,7 +96,6 @@
     </div>
 </div>
 
-<!-- MODAL TAMBAH & EDIT -->
 <div id="currencyModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
         

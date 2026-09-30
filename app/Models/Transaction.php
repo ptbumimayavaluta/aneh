@@ -32,19 +32,16 @@ class Transaction extends Model
         return $this->belongsTo(Currency::class);
     }
 
-    // Kasir/Admin pembuat
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    // User yang mengedit
     public function updatedBy()
     {
         return $this->belongsTo(User::class, 'updated_by');
     }
 
-    // User yang menghapus (menggantungkan data)
     public function deletedBy()
     {
         return $this->belongsTo(User::class, 'deleted_by');
