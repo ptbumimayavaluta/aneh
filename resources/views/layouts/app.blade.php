@@ -3,18 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'BMEX')</title>
+    <title>@yield('title', 'BMEX - Bali Money Exchange')</title>
+
+    <!-- Favicon Logo (Muncul di Tab Browser) -->
+    <link rel="icon" type="image/png" href="{{ asset('img/bmex.png') }}">
+
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased text-gray-800">
 
     <div class="flex h-screen overflow-hidden">
         
+        <!-- Sidebar -->
         <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between shadow-lg">
             <div>
-                <div class="p-5 text-xl font-bold border-b border-slate-800 flex items-center gap-2">
-                    <span class="bg-emerald-500 text-white p-2 rounded-lg text-xs font-black">BMEX</span>
-                    <span>Bali Money Exchange</span>
+                <!-- Brand / Logo Sidebar -->
+                <div class="p-5 text-lg font-bold border-b border-slate-800 flex items-center gap-3">
+                    <img src="{{ asset('img/bmex.png') }}" alt="BMEX Logo" class="w-8 h-8 object-contain">
+                    <span class="leading-tight">Bali Money Exchange</span>
                 </div>
 
                 <nav class="mt-4 px-3 space-y-1">
@@ -40,7 +46,7 @@
                     </a>
 
                     {{-- MENU KHUSUS ADMIN --}}
-                    @if(Auth::user()->role === 'admin')
+                    @if(Auth::check() && Auth::user()->role === 'admin')
                     <a href="{{ route('users.index') }}" 
                        class="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition {{ request()->routeIs('users.*') ? 'bg-emerald-600 text-white' : 'text-gray-400 hover:bg-slate-800 hover:text-white' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
@@ -55,6 +61,7 @@
             </div>
         </aside>
 
+        <!-- Main Content Area -->
         <div class="flex-1 flex flex-col overflow-y-auto">
             
             <!-- Top Header -->
@@ -63,8 +70,8 @@
                 
                 <div class="flex items-center gap-4">
                     <div class="text-right">
-                        <div class="text-sm font-bold text-gray-800">{{ Auth::user()->name }}</div>
-                        <div class="text-xs text-emerald-600 uppercase font-semibold">{{ Auth::user()->role }}</div>
+                        <div class="text-sm font-bold text-gray-800">{{ Auth::user()->name ?? 'User' }}</div>
+                        <div class="text-xs text-emerald-600 uppercase font-semibold">{{ Auth::user()->role ?? 'Kasir' }}</div>
                     </div>
 
                     <a href="{{ route('password.change') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1 border border-gray-300">
