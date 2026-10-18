@@ -6,10 +6,9 @@
     <title>Nota Transaksi - {{ $transaction->trx_code }}</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Mengatur ukuran kertas printer thermal secara presisi agar tidak boros rol */
         @page {
-            size: 80mm auto; /* Ubah ke 58mm jika menggunakan printer gulung kecil 58mm */
-            margin: 2mm;
+            size: 76mm auto; /* Epson TM-U220 menggunakan lebar 76mm */
+            margin: 0mm;     /* Hilangkan margin default browser */
         }
         @media print {
             .no-print { display: none !important; }
