@@ -9,19 +9,15 @@ use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
-    // Halaman Utama Data Nasabah (Aktif & Menggantung)
     public function index(Request $request)
     {
-        // Default tanggal hari ini jika filter tidak diisi
         $date = $request->input('date', date('Y-m-d'));
 
-        // Data Nasabah Aktif berdasarkan tanggal transaksi
         $activeNasabah = Transaction::whereDate('created_at', $date)
                             ->with(['currency', 'user', 'updatedBy'])
                             ->latest()
                             ->get();
 
-        // Data Nasabah Menggantung (Soft Deleted) berdasarkan tanggal transaksi
         $trashedNasabah = Transaction::onlyTrashed()
                             ->whereDate('created_at', $date)
                             ->with(['currency', 'user', 'deletedBy'])
@@ -31,7 +27,6 @@ class CustomerController extends Controller
         return view('customers.index', compact('activeNasabah', 'trashedNasabah', 'date'));
     }
 
-    // Form Edit Data Nasabah & Transaksi
     public function edit($id)
     {
         $transaction = Transaction::findOrFail($id);
@@ -40,7 +35,6 @@ class CustomerController extends Controller
         return view('customers.edit', compact('transaction', 'currencies'));
     }
 
-    // Update Data Nasabah
     public function update(Request $request, $id)
     {
         $transaction = Transaction::findOrFail($id);
@@ -79,8 +73,18 @@ class CustomerController extends Controller
 
     public function print($id)
     {
-        $transaction = Transaction::withTrashed()->with(['currency', 'user'])->findOrFail($id);
+        // [BAGIAN UTAMA YANG DIUBAH]: Ambil data transaksi acuan berdasarkan ID
+        $targetTransaction = Transaction::withTrashed()->findOrFail($id);
 
-        return view('customers.print', compact('transaction'));
+        // Ambil SEMUA baris transaksi yang memiliki trx_code yang sama persis
+        $items = Transaction::withTrashed()
+                    ->where('trx_code', $targetTransaction->trx_code)
+                    ->with(['currency', 'user'])
+                    ->get();
+
+        return view('customers.print', [
+            'transaction' => $targetTransaction,
+            'items'       => $items
+        ]);
     }
 }

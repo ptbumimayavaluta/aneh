@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'From Transaksi')
+@section('title', 'Form Transaksi')
 @section('page_heading', 'Form Transaksi')
 
 @section('content')
@@ -29,7 +29,6 @@
     .ts-dropdown .option {
         padding: 6px 12px !important;
     }
-    /* MENGHILANGKAN NAVY: Diganti dengan warna terang (Slate 100) */
     .ts-dropdown .option.active {
         background-color: #f1f5f9 !important;
         color: #0f172a !important;
@@ -55,16 +54,21 @@
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="md:col-span-2">
+                <!-- Nama Lengkap dengan Autocomplete AJAX -->
+                <div class="md:col-span-2 relative">
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Nama Lengkap <span class="text-rose-500">*</span></label>
-                    <input type="text" name="customer_name" value="{{ old('customer_name') }}" required placeholder="Masukkan nama sesuai identitas"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-slate-800">
+                    <input type="text" id="customer_name_input" name="customer_name" value="{{ old('customer_name') }}" required placeholder="Ketik minimal 2 huruf nama nasabah..."
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-slate-800 uppercase" autocomplete="off">
+                    
+                    <!-- Box Suggestions Dropdown -->
+                    <div id="customer-suggestions" class="absolute left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg mt-1 hidden z-50 max-h-48 overflow-y-auto text-xs"></div>
+                    
                     @error('customer_name') <span class="text-xs text-rose-500">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Tipe ID <span class="text-rose-500">*</span></label>
-                    <select name="id_type" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-slate-800">
+                    <select name="id_type" id="id_type_select" required class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-slate-800">
                         <option value="KTP" {{ old('id_type') == 'KTP' ? 'selected' : '' }}>KTP</option>
                         <option value="PASSPORT" {{ old('id_type') == 'PASSPORT' ? 'selected' : '' }}>PASSPORT</option>
                         <option value="SIM" {{ old('id_type') == 'SIM' ? 'selected' : '' }}>SIM</option>
@@ -75,20 +79,20 @@
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Nomor Identitas (ID)</label>
-                    <input type="text" name="id_number" value="{{ old('id_number') }}" placeholder="Identity Number"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-slate-800">
+                    <input type="text" id="id_number_input" name="id_number" value="{{ old('id_number') }}" placeholder="Identity Number"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-slate-800 uppercase">
                 </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Negara <span class="text-rose-500">*</span></label>
-                    <input type="text" name="country" value="{{ old('country', '') }}" required placeholder="Country"
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-slate-800">
+                    <input type="text" id="country_input" name="country" value="{{ old('country', '') }}" required placeholder="Country"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-slate-800 uppercase">
                 </div>
 
                 <div class="md:col-span-2">
                     <label class="block text-xs font-semibold text-gray-600 mb-1">Alamat</label>
-                    <textarea name="address" rows="2" placeholder="Alamat lengkap nasabah"
-                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-slate-800">{{ old('address') }}</textarea>
+                    <textarea name="address" id="address_textarea" rows="2" placeholder="Alamat lengkap nasabah"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-slate-800 uppercase">{{ old('address') }}</textarea>
                 </div>
             </div>
         </div>
@@ -181,6 +185,73 @@ document.addEventListener('DOMContentLoaded', function() {
     const trxTypeInput = document.getElementById('trx_type');
     const grandTotalDisplay = document.getElementById('grand-total-display');
 
+    // AUTO UPPERCASE UNTUK SEMUA INPUT TEKS & TEXTAREA
+    const textInputs = document.querySelectorAll('input[type="text"], textarea');
+    textInputs.forEach(input => {
+        input.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    });
+
+    // FITUR AUTO-SEARCH NASABAH LAMA (AJAX)
+    const nameInput = document.getElementById('customer_name_input');
+    const suggestionsBox = document.getElementById('customer-suggestions');
+    const idTypeSelect = document.getElementById('id_type_select');
+    const idNumberInput = document.getElementById('id_number_input');
+    const countryInput = document.getElementById('country_input');
+    const addressTextarea = document.getElementById('address_textarea');
+
+    let debounceTimer;
+    nameInput.addEventListener('input', function() {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+
+        if (query.length < 2) {
+            suggestionsBox.classList.add('hidden');
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch(`{{ route('transactions.search-customer') }}?q=${encodeURIComponent(query)}`)
+                .then(response => response.json())
+                .then(data => {
+                    suggestionsBox.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(cust => {
+                            const div = document.createElement('div');
+                            div.className = 'p-2.5 hover:bg-slate-100 cursor-pointer border-b border-gray-100 last:border-0';
+                            div.innerHTML = `
+                                <div class="font-bold text-slate-800">${cust.customer_name}</div>
+                                <div class="text-[10px] text-slate-500">${cust.id_type}: ${cust.id_number || '-'} | Negara: ${cust.country || '-'}</div>
+                            `;
+
+                            // Ketika diklik, auto-fill semua form identitas
+                            div.addEventListener('click', function() {
+                                nameInput.value = cust.customer_name;
+                                idTypeSelect.value = cust.id_type || 'KTP';
+                                idNumberInput.value = cust.id_number || '';
+                                countryInput.value = cust.country || '';
+                                addressTextarea.value = cust.address || '';
+                                suggestionsBox.classList.add('hidden');
+                            });
+
+                            suggestionsBox.appendChild(div);
+                        });
+                        suggestionsBox.classList.remove('hidden');
+                    } else {
+                        suggestionsBox.classList.add('hidden');
+                    }
+                });
+        }, 300);
+    });
+
+    // Tutup suggestions jika klik di luar
+    document.addEventListener('click', function(e) {
+        if (!nameInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+            suggestionsBox.classList.add('hidden');
+        }
+    });
+
     const currenciesData = @json($currencies);
     let rowIndex = 1;
 
@@ -193,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function attachSearchableSelect(selectElement) {
         return new TomSelect(selectElement, {
             create: false,
-            placeholder: "Ketik Kode / Nama...",
+            placeholder: "Pilih Currency...",
             dropdownParent: 'body',
             render: {
                 option: function(data, escape) {

@@ -25,7 +25,8 @@ Route::middleware('auth')->group(function () {
     // Transaksi Routes
     Route::get('/transactions/create', [TransactionController::class, 'create'])->name('transactions.create');
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
-
+    Route::get('/transactions/search-customer', [TransactionController::class, 'searchCustomer'])->name('transactions.search-customer');
+    
     // Mutasi Transaksi Route
     Route::get('/mutations', [MutationController::class, 'index'])->name('mutations.index');
 
