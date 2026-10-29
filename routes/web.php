@@ -30,6 +30,11 @@ Route::middleware('auth')->group(function () {
     // Mutasi Transaksi Route
     Route::get('/mutations', [MutationController::class, 'index'])->name('mutations.index');
 
+    // Route Biaya Operasional
+    Route::get('/expenses', [App\Http\Controllers\OperationalExpenseController::class, 'index'])->name('expenses.index');
+    Route::post('/expenses', [App\Http\Controllers\OperationalExpenseController::class, 'store'])->name('expenses.store');
+    Route::delete('/expenses/{id}', [App\Http\Controllers\OperationalExpenseController::class, 'destroy'])->name('expenses.destroy');
+
     // 1. Route khusus Data Nasabah
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::get('/customers/{id}/edit', [CustomerController::class, 'edit'])->name('customers.edit');

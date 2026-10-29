@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\Currency;
+use App\Models\OperationalExpense;
 use Carbon\Carbon;
 
 class MutationController extends Controller
@@ -31,10 +32,15 @@ class MutationController extends Controller
             ->where('type', 'SELL')
             ->sum('total_idr');
 
+        // <-- 2. Ambil total biaya operasional pada periode bulan & tahun ini
+        $totalExpense = OperationalExpense::whereBetween('date', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
+            ->sum('amount');
+
         $displayPembelian = $trxAll->where('type', 'BUY')->sum('total_idr');
         $displayPenjualan = $trxAll->where('type', 'SELL')->sum('total_idr');
 
-        $endCash = $startCash + $realCashSell - $realCashBuy;
+        // <-- 3. Kas akhir fisik dikurangi dengan total biaya operasional
+        $endCash = $startCash + $realCashSell - $realCashBuy - $totalExpense;
 
         $tempCurrencyReport = $this->calculateForexMutation($trxAll, $startStocks);
 
@@ -52,6 +58,7 @@ class MutationController extends Controller
             'start'       => $startCash,
             'in'          => $displayPembelian,
             'out'         => $displayPenjualan,
+            'expense'     => $totalExpense, // <-- 4. Masukkan ke array brankas
             'end'         => $endCash,
             'start_asset' => $startCash + $valStartTotal,
             'end_asset'   => $endCash + $valEndTotal,
@@ -68,8 +75,10 @@ class MutationController extends Controller
         ));
     }
 
+    // (Biarkan method calculateForexMutation dan getAccumulatedStart tetap sama seperti sebelumnya)
     private function calculateForexMutation($transactions, $startStocks)
     {
+        // ... (kode lama tidak berubah)
         $currencies = Currency::where('is_active', 1)->orderBy('id', 'asc')->get();
         $report = [];
 
@@ -125,8 +134,6 @@ class MutationController extends Controller
             }
 
             $profit = ($valEndItem + $jualIdrTotal) - ($valStartItem + $beliIdrTotal);
-
-            // FILTER: Hanya tampilkan mata uang yang memiliki aktivitas / stok
             $hasActivity = ($qtyAwal > 0 || $beliQtyTotal > 0 || $jualQtyTotal > 0 || $qtyAkhir > 0);
 
             if ($hasActivity) {
@@ -146,6 +153,7 @@ class MutationController extends Controller
 
     private function getAccumulatedStart($targetDate)
     {
+        // ... (kode lama tidak berubah)
         $allCurrencies = Currency::where('is_active', 1)->get();
 
         $cashIn = Transaction::where('created_at', '<', $targetDate . ' 00:00:00')

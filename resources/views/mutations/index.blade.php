@@ -36,7 +36,9 @@
 
     @php
         $hpp = $valuation['start'] + $brankas['in'] - $valuation['end'];
-        $laba = $brankas['out'] - $hpp;
+        $labaKotor = $brankas['out'] - $hpp;
+        $totalExpense = $brankas['expense'] ?? 0;
+        $labaBersih = $labaKotor - $totalExpense;
 
         // Helper format angka standar Indonesia (Titik untuk ribuan)
         $fmt = function($val) {
@@ -52,16 +54,16 @@
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Total Penjualan</span>
+            <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Total Penjualan (Omset)</span>
             <span class="text-lg font-black text-gray-800 mt-1 block">Rp {{ $fmt($brankas['out']) }}</span>
         </div>
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Pembelian Valas</span>
-            <span class="text-lg font-black text-emerald-600 mt-1 block">Rp {{ $fmt($brankas['in']) }}</span>
+            <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Biaya Operasional</span>
+            <span class="text-lg font-black text-rose-600 mt-1 block">Rp {{ $fmt($totalExpense) }}</span>
         </div>
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-            <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Estimasi Laba</span>
-            <span class="text-lg font-black {{ $laba >= 0 ? 'text-emerald-700' : 'text-rose-600' }} mt-1 block">Rp {{ $fmt($laba) }}</span>
+            <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Estimasi Laba Bersih</span>
+            <span class="text-lg font-black {{ $labaBersih >= 0 ? 'text-emerald-700' : 'text-rose-600' }} mt-1 block">Rp {{ $fmt($labaBersih) }}</span>
         </div>
         <div class="bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
             <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Total Aset (Kas + Valas)</span>
@@ -71,6 +73,7 @@
 
     <div class="space-y-6">
 
+        <!-- I. Arus Kas Fisik -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50/50">
                 <h3 class="font-bold text-gray-800 text-xs uppercase tracking-wider flex items-center gap-2">
@@ -83,9 +86,10 @@
                     <thead class="bg-white text-slate-700 border-b border-gray-200 uppercase font-bold tracking-wider">
                         <tr>
                             <th class="px-3 py-3 text-center">Modal Awal</th>
-                            <th class="px-3 py-3 text-center text-emerald-700">Beli (Out)</th>
-                            <th class="px-3 py-3 text-center text-rose-700">Jual (In)</th>
-                            <th class="px-3 py-3 text-center bg-slate-50 text-slate-900">Sisa Fisik</th>
+                            <th class="px-3 py-3 text-center text-emerald-700">Beli Valas (Out)</th>
+                            <th class="px-3 py-3 text-center text-rose-700">Jual Valas (In)</th>
+                            <th class="px-3 py-3 text-center text-rose-600">Biaya Ops (-)</th>
+                            <th class="px-3 py-3 text-center bg-slate-50 text-slate-900">Sisa Fisik Brankas</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-100">
@@ -93,6 +97,7 @@
                             <td class="px-3 py-4">Rp {{ $fmt($brankas['start']) }}</td>
                             <td class="px-3 py-4 text-emerald-600">Rp {{ $fmt($brankas['in']) }}</td>
                             <td class="px-3 py-4 text-rose-600">Rp {{ $fmt($brankas['out']) }}</td>
+                            <td class="px-3 py-4 text-rose-600">Rp {{ $fmt($totalExpense) }}</td>
                             <td class="px-3 py-4 bg-slate-50 text-slate-900 font-black">Rp {{ $fmt($brankas['end']) }}</td>
                         </tr>
                     </tbody>
@@ -100,6 +105,7 @@
             </div>
         </div>
 
+        <!-- II. Laporan Laba Rugi -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50/50">
                 <h3 class="font-bold text-gray-800 text-xs uppercase tracking-wider flex items-center gap-2">
@@ -130,15 +136,24 @@
                             <td class="px-4 py-2 font-bold text-gray-800">B. TOTAL HPP (1 + 2 - 3)</td>
                             <td class="px-4 py-2 font-mono font-bold text-rose-600 text-right">Rp ({{ $fmt($hpp) }})</td>
                         </tr>
+                        <tr class="bg-gray-50/50">
+                            <td class="px-4 py-2.5 font-bold text-gray-800">C. ESTIMASI LABA KOTOR (A - B)</td>
+                            <td class="px-4 py-2.5 font-mono font-bold text-emerald-700 text-right">Rp {{ $fmt($labaKotor) }}</td>
+                        </tr>
+                        <tr class="bg-rose-50/30">
+                            <td class="px-4 py-2 text-rose-700 pl-8 font-medium">D. Total Biaya Operasional (-)</td>
+                            <td class="px-4 py-2 font-mono font-bold text-rose-600 text-right">Rp ({{ $fmt($totalExpense) }})</td>
+                        </tr>
                         <tr class="bg-slate-900 text-white">
-                            <td class="px-4 py-2.5 font-black uppercase">C. ESTIMASI LABA (A - B)</td>
-                            <td class="px-4 py-2.5 font-mono font-black text-sm text-right">Rp {{ $fmt($laba) }}</td>
+                            <td class="px-4 py-2.5 font-black uppercase">E. ESTIMASI LABA BERSIH (C - D)</td>
+                            <td class="px-4 py-2.5 font-mono font-black text-sm text-right">Rp {{ $fmt($labaBersih) }}</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
 
+        <!-- III. Rincian Mutasi Per Mata Uang -->
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
             <div class="px-5 py-3.5 border-b border-gray-100 bg-gray-50/50">
                 <h3 class="font-bold text-gray-800 text-xs uppercase tracking-wider flex items-center gap-2">
