@@ -153,7 +153,6 @@ class MutationController extends Controller
 
     private function getAccumulatedStart($targetDate)
     {
-        // ... (kode lama tidak berubah)
         $allCurrencies = Currency::where('is_active', 1)->get();
 
         $cashIn = Transaction::where('created_at', '<', $targetDate . ' 00:00:00')
@@ -164,7 +163,13 @@ class MutationController extends Controller
             ->where('type', 'BUY')
             ->sum('total_idr');
 
-        $totalCash = $cashIn - $cashOut;
+        // 1. Ambil total akumulasi biaya operasional sebelum tanggal target
+        $totalExpenseBefore = OperationalExpense::where('date', '<', $targetDate)
+            ->sum('amount');
+
+        // 2. Kurangi kas dengan total biaya operasional masa lalu
+        $totalCash = $cashIn - $cashOut - $totalExpenseBefore;
+
         $finalStocks = [];
 
         foreach ($allCurrencies as $curr) {
